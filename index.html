@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Erotic Journey 80 · 80 Bước Yêu</title>
+    <style>
+        :root {
+            --primary: #ff0054;
+            --bg: #050508;
+            --gold: #ffbd00;
+            --p1: #00d4ff;
+            --p2: #ff0054;
+        }
+
+        body {
+            margin: 0; background: var(--bg); color: white;
+            font-family: -apple-system, "Noto Sans SC", "PingFang SC", "STHeiti", sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 核心容器适配 */
+        .main-container {
+            width: 100%;
+            max-width: 600px; /* PC端适当放宽 */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-board {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 8px; padding: 20px; width: calc(100% - 40px);
+            margin-bottom: 160px;
+        }
+
+        .cell {
+            aspect-ratio: 0.85; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; position: relative;
+            box-sizing: border-box; padding: 4px;
+        }
+
+        .cell-num { 
+            position: absolute; top: 4px; left: 5px; 
+            font-size: 10px; color: rgba(255,255,255,0.4); 
+            font-weight: bold;
+        }
+
+        /* PC端字体放大逻辑 */
+        .cell span { 
+            font-size: 11px; /* 移动端基准 */
+            line-height: 1.25; display: block; overflow: hidden;
+            word-break: break-all;
+        }
+
+        /* 针对大屏幕(PC)的特殊优化 */
+        @media screen and (min-width: 601px) {
+            .cell span { font-size: 14px; }
+            .cell-num { font-size: 12px; }
+            .zh { font-size: 26px !important; }
+            .vi { font-size: 20px !important; }
+        }
+
+        .stage-1 { border-color: rgba(0, 212, 255, 0.3); }
+        .stage-2 { background: rgba(255, 0, 84, 0.18); border-color: var(--primary); }
+
+        .player-token {
+            width: 16px; height: 16px; border-radius: 50%;
+            position: absolute; border: 2px solid #fff; z-index: 5;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #p1-token { background: var(--p1); top: 4px; right: 4px; box-shadow: 0 0 10px var(--p1); }
+        #p2-token { background: var(--p2); bottom: 4px; left: 4px; box-shadow: 0 0 10px var(--p2); }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 600px; height: 140px;
+            background: rgba(10, 10, 15, 0.98); backdrop-filter: blur(25px);
+            border-top: 2px solid var(--primary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+
+        #dice {
+            width: 55px; height: 55px; background: white; color: black;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: bold; border-radius: 12px;
+            margin-bottom: 10px; box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        .dice-rolling { animation: roll 0.1s infinite; }
+        @keyframes roll { 0% { transform: scale(1.1) rotate(0); } 100% { transform: scale(1.1) rotate(360deg); } }
+
+        #dice-btn {
+            background: linear-gradient(45deg, var(--primary), #70037c);
+            border: none; padding: 12px 70px; color: white;
+            border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
+        }
+
+        /* 弹窗文字适配 */
+        #modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .card { width: 85%; max-width: 450px; padding: 40px 25px; text-align: center; border: 2px solid var(--primary); border-radius: 25px; background: #0c0c12; }
+        .zh { font-size: 24px; color: var(--gold); display: block; margin-bottom: 20px; font-weight: bold; }
+        .vi { font-size: 18px; color: #ccc; display: block; border-top: 1px solid #333; padding-top: 20px; font-style: italic; }
+        .close-btn { margin-top: 30px; color: var(--primary); font-size: 18px; font-weight: bold; cursor: pointer; display: inline-block; padding: 5px 15px; border: 1px solid var(--primary); border-radius: 10px; }
+        
+        #music-status { position: absolute; top: 15px; right: 20px; font-size: 22px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div id="music-status">🎵</div>
+    <h3 style="margin: 25px 0 10px 0; color: var(--primary); letter-spacing: 3px; font-weight: 900;">ULTIMATE 80 · ĐÊM NÓNG BỎNG</h3>
+    
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="game-board"></div>
+
+    <div class="bottom-nav">
+        <div id="turn-info" style="font-size: 14px; margin-bottom: 8px;">TURN: <span id="current-player" style="color:var(--p1)">老公/Chồng</span></div>
+        <div id="dice">?</div>
+        <button id="dice-btn" onclick="rollDice()">ROLL 🎲</button>
+        <div style="font-size: 11px; color: #555; margin-top: 8px;">PC: Space to roll | Space để đổ xúc xắc</div>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="card">
+            <span class="zh" id="zh-text"></span>
+            <span class="vi" id="vi-text"></span>
+            <div class="close-btn" onclick="closeModal()">DONE / XONG</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const stage1Tasks = [
+        { zh: "起点", vi: "Bắt đầu" },
+        { zh: "深情对视30秒，不许笑", vi: "Nhìn sâu vào mắt nhau 30s" },
+        { zh: "隔衣揉搓对方胸部/乳头", vi: "Xoa nắn ngực qua lớp áo" },
+        { zh: "罚酒1杯：用嘴喂给对方", vi: "Phạt 1 ly: Mớm cho đối phương" },
+        { zh: "在对方耳边吹气并说出幻想", vi: "Thổi vào tai và nói ảo tưởng" },
+        { zh: "互换内衣并穿在外面", vi: "Đổi đồ lót và mặc ra ngoài" },
+        { zh: "用舌尖舔弄对方的耳垂", vi: "Dùng lưỡi liếm thùy tai" },
+        { zh: "罚酒2杯：指定部位喝酒", vi: "Phạt 2 ly: Uống trên cơ thể" },
+        { zh: "脱掉对方上衣，只能用嘴", vi: "Cởi áo chỉ bằng miệng" },
+        { zh: "用口红在对方身上画3个记号", vi: "Dùng son vẽ 3 dấu hiệu" },
+        { zh: "跪下亲吻对方的双脚", vi: "Quỳ xuống hôn bàn chân" },
+        { zh: "罚酒1杯：不许用手端杯", vi: "Phạt 1 ly: Không dùng tay" },
+        { zh: "蒙上眼，接受1分钟全身抚摸", vi: "Bịt mắt, để đối phương vuốt ve" },
+        { zh: "拍打对方臀部20下，大声数", vi: "Tét mông 20 cái, đếm to" },
+        { zh: "含住手指，像吃冰棒一样", vi: "Mút ngón tay như mút kem" },
+        { zh: "罚酒3杯：或脱光上身", vi: "Phạt 3 ly hoặc cởi trần" },
+        { zh: "用冰块从颈部滑到肚脐", vi: "Lướt đá lạnh từ cổ xuống rốn" },
+        { zh: "在对方大腿内侧留下吻痕", vi: "Để lại hickey ở đùi trong" },
+        { zh: "展示你最性感的姿势", vi: "Tạo dáng gợi cảm nhất" },
+        { zh: "罚酒2杯：由对方喂你", vi: "Phạt 2 ly: Đối phương mớm" },
+        { zh: "舔弄对方的肚脐眼", vi: "Liếm rốn đối phương" },
+        { zh: "指甲在对方背部轻轻划动", vi: "Cào nhẹ lên lưng" },
+        { zh: "模仿AV中的挑逗台词", vi: "Nói lời thoại gợi tình AV" },
+        { zh: "罚酒1杯：身体作杯垫", vi: "Phạt 1 ly: Dùng thân làm lót ly" },
+        { zh: "用头发摩擦对方身体", vi: "Dùng tóc cọ xát cơ thể" },
+        { zh: "描述对方身上最爱的3点", vi: "Mô tả 3 điểm bạn thích nhất" },
+        { zh: "含口酒，亲吻并度过去", vi: "Ngậm rượu, hôn và truyền" },
+        { zh: "脱掉内衣，禁下一步", vi: "Cởi đồ lót, không được làm thêm" },
+        { zh: "用领带蒙住对方眼睛", vi: "Bịt mắt bằng cà vạt" },
+        { zh: "前戏终点：准备实战", vi: "Kết thúc dạo đầu: Sẵn sàng" }
+    ];
+
+    const stage2Tasks = [
+        { zh: "含吮乳房/乳头2分钟", vi: "Mút ngực trong 2 phút" },
+        { zh: "深度口活：含住私处3分钟", vi: "Oral sex trong 3 phút" },
+        { zh: "姿势：老树盘根（跨坐）", vi: "Tư thế: Quấn quanh eo" },
+        { zh: "罚酒2杯：喝完即进入", vi: "Phạt 2 ly: Uống xong thâm nhập" },
+        { zh: "舌尖舔弄私处周围", vi: "Liếm quanh vùng kín" },
+        { zh: "姿势：Doggystyle", vi: "Tư thế: Từ phía sau" },
+        { zh: "椅上进行，女方掌控", vi: "Làm trên ghế, nữ kiểm soát" },
+        { zh: "罚酒3杯：满足一愿望", vi: "Phạt 3 ly: Thực hiện nguyện vọng" },
+        { zh: "姿势：传教士（腿架肩）", vi: "Tư thế: Chân gác vai" },
+        { zh: "深喉服务：至对方颤抖", vi: "Deep throat đến khi run" },
+        { zh: "口红画心私处并舔掉", vi: "Vẽ tim lên vùng kín rồi liếm" },
+        { zh: "姿势：69式同步", vi: "Tư thế: 69 đồng thời" },
+        { zh: "罚酒2杯：指定节奏", vi: "Phạt 2 ly: Nhịp điệu chỉ định" },
+        { zh: "姿势：火车便当（抱起）", vi: "Tư thế: Bế đứng" },
+        { zh: "轻拍私处周围10下", vi: "Vỗ vùng kín 10 cái" },
+        { zh: "姿势：女上背对", vi: "Tư thế: Nữ trên quay lưng" },
+        { zh: "冰块刺激敏感点并继续", vi: "Kích thích bằng đá và tiếp tục" },
+        { zh: "大声喊出此时感受", vi: "Hét to cảm xúc lúc này" },
+        { zh: "罚酒1杯：酒后舌吻", vi: "Phạt 1 ly: Hôn lưỡi sau uống" },
+        { zh: "终点：疯狂释放", vi: "Đích: Giải phóng cuồng nhiệt" }
+    ];
+
+    let finalTasks = [];
+    for(let i=0; i<80; i++) {
+        let t;
+        if(i < 30) { t = {...(stage1Tasks[i] || stage1Tasks[i%30]), stage: 1}; }
+        else if(i === 79) { t = {...stage2Tasks[stage2Tasks.length-1], stage: 2}; }
+        else { t = {...stage2Tasks[(i-30) % (stage2Tasks.length-1)], stage: 2}; }
+        finalTasks.push(t);
+    }
+
+    let players = [{ pos: 0 }, { pos: 0 }];
+    let turn = 0;
+    let isRolling = false;
+    let musicStarted = false;
+
+    const boardEl = document.getElementById('game-board');
+    finalTasks.forEach((d, i) => {
+        boardEl.innerHTML += `<div class="cell stage-${d.stage}" id="cell-${i}"><div class="cell-num">${i+1}</div><span>${d.zh}<br>${d.vi}</span></div>`;
+    });
+
+    const tokens = [document.createElement('div'), document.createElement('div')];
+    tokens[0].id = "p1-token"; tokens[0].className = "player-token";
+    tokens[1].id = "p2-token"; tokens[1].className = "player-token";
+    document.getElementById('cell-0').appendChild(tokens[0]);
+    document.getElementById('cell-0').appendChild(tokens[1]);
+
+    function rollDice() {
+        if (isRolling) return;
+        if(!musicStarted) {
+            document.getElementById('bg-music').play().catch(() => {});
+            musicStarted = true;
+            document.getElementById('music-status').style.opacity = "1";
+        }
+        isRolling = true;
+        const diceEl = document.getElementById('dice');
+        diceEl.classList.add('dice-rolling');
+        setTimeout(() => {
+            diceEl.classList.remove('dice-rolling');
+            const num = Math.floor(Math.random() * 6) + 1;
+            diceEl.innerText = num;
+            setTimeout(() => { movePlayer(num); isRolling = false; }, 2000);
+        }, 600);
+    }
+
+    function movePlayer(step) {
+        let p = players[turn];
+        p.pos = Math.min(p.pos + step, 79);
+        const target = document.getElementById(`cell-${p.pos}`);
+        target.appendChild(tokens[turn]);
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            document.getElementById('zh-text').innerText = finalTasks[p.pos].zh;
+            document.getElementById('vi-text').innerText = finalTasks[p.pos].vi;
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }, 500);
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        if (players[turn].pos < 79) {
+            turn = turn === 0 ? 1 : 0;
+            document.getElementById('current-player').innerText = turn === 0 ? "老公/Chồng" : "老婆/Vợ";
+            document.getElementById('current-player').style.color = turn === 0 ? "var(--p1)" : "var(--p2)";
+        }
+        document.getElementById('dice').innerText = "?";
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if(e.code === 'Space' && document.getElementById('modal-overlay').style.display !== 'flex') {
+            rollDice();
+        }
+    });
+</script>
+</body>
+</html>
