@@ -18,12 +18,12 @@
             font-family: -apple-system, "Noto Sans SC", "PingFang SC", "STHeiti", sans-serif;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
 
-        /* 核心容器适配 */
         .main-container {
             width: 100%;
-            max-width: 600px; /* PC端适当放宽 */
+            max-width: 600px;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -50,19 +50,19 @@
             font-weight: bold;
         }
 
-        /* PC端字体放大逻辑 */
         .cell span { 
-            font-size: 11px; /* 移动端基准 */
+            font-size: 11px;
             line-height: 1.25; display: block; overflow: hidden;
             word-break: break-all;
         }
 
-        /* 针对大屏幕(PC)的特殊优化 */
+        /* 响应式适配 */
         @media screen and (min-width: 601px) {
             .cell span { font-size: 14px; }
             .cell-num { font-size: 12px; }
-            .zh { font-size: 26px !important; }
-            .vi { font-size: 20px !important; }
+            .zh { font-size: 28px !important; }
+            .vi { font-size: 22px !important; }
+            .timer-display { font-size: 32px !important; }
         }
 
         .stage-1 { border-color: rgba(0, 212, 255, 0.3); }
@@ -97,17 +97,19 @@
             background: linear-gradient(45deg, var(--primary), #70037c);
             border: none; padding: 12px 70px; color: white;
             border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
+            touch-action: manipulation;
         }
 
-        /* 弹窗文字适配 */
         #modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); z-index: 2000; justify-content: center; align-items: center;
         }
-        .card { width: 85%; max-width: 450px; padding: 40px 25px; text-align: center; border: 2px solid var(--primary); border-radius: 25px; background: #0c0c12; }
+        .card { width: 85%; max-width: 450px; padding: 30px 20px; text-align: center; border: 2px solid var(--primary); border-radius: 25px; background: #0c0c12; }
+        
+        .timer-display { font-size: 26px; color: var(--gold); margin-bottom: 15px; font-family: 'Courier New', monospace; font-weight: 900; letter-spacing: 2px; }
         .zh { font-size: 24px; color: var(--gold); display: block; margin-bottom: 20px; font-weight: bold; }
         .vi { font-size: 18px; color: #ccc; display: block; border-top: 1px solid #333; padding-top: 20px; font-style: italic; }
-        .close-btn { margin-top: 30px; color: var(--primary); font-size: 18px; font-weight: bold; cursor: pointer; display: inline-block; padding: 5px 15px; border: 1px solid var(--primary); border-radius: 10px; }
+        .close-btn { margin-top: 30px; color: var(--primary); font-size: 18px; font-weight: bold; cursor: pointer; display: inline-block; padding: 8px 25px; border: 1px solid var(--primary); border-radius: 12px; }
         
         #music-status { position: absolute; top: 15px; right: 20px; font-size: 22px; opacity: 0.5; }
     </style>
@@ -119,7 +121,7 @@
     <h3 style="margin: 25px 0 10px 0; color: var(--primary); letter-spacing: 3px; font-weight: 900;">ULTIMATE 80 · ĐÊM NÓNG BỎNG</h3>
     
     <audio id="bg-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
     </audio>
 
     <div id="game-board"></div>
@@ -133,6 +135,7 @@
 
     <div id="modal-overlay">
         <div class="card">
+            <div id="task-timer" class="timer-display">00:00</div>
             <span class="zh" id="zh-text"></span>
             <span class="vi" id="vi-text"></span>
             <div class="close-btn" onclick="closeModal()">DONE / XONG</div>
@@ -147,7 +150,7 @@
         { zh: "隔衣揉搓对方胸部/乳头", vi: "Xoa nắn ngực qua lớp áo" },
         { zh: "罚酒1杯：用嘴喂给对方", vi: "Phạt 1 ly: Mớm cho đối phương" },
         { zh: "在对方耳边吹气并说出幻想", vi: "Thổi vào tai và nói ảo tưởng" },
-        { zh: "互换内衣并穿在外面", vi: "Đổi đồ lót và mặc ra ngoài" },
+        { zh: "蒙住眼，凭触觉猜对方身体部位", vi: "Bịt mắt, đoán bộ phận cơ thể qua xúc giác" },
         { zh: "用舌尖舔弄对方的耳垂", vi: "Dùng lưỡi liếm thùy tai" },
         { zh: "罚酒2杯：指定部位喝酒", vi: "Phạt 2 ly: Uống trên cơ thể" },
         { zh: "脱掉对方上衣，只能用嘴", vi: "Cởi áo chỉ bằng miệng" },
@@ -171,7 +174,7 @@
         { zh: "含口酒，亲吻并度过去", vi: "Ngậm rượu, hôn và truyền" },
         { zh: "脱掉内衣，禁下一步", vi: "Cởi đồ lót, không được làm thêm" },
         { zh: "用领带蒙住对方眼睛", vi: "Bịt mắt bằng cà vạt" },
-        { zh: "前戏终点：准备实战", vi: "Kết thúc dạo đầu: Sẵn sàng" }
+        { zh: "盲盒吻：蒙眼选身体部位亲吻3分钟", vi: "Hôn hộp mù: Bịt mắt chọn bộ phận và hôn 3 phút" }
     ];
 
     const stage2Tasks = [
@@ -194,7 +197,7 @@
         { zh: "冰块刺激敏感点并继续", vi: "Kích thích bằng đá và tiếp tục" },
         { zh: "大声喊出此时感受", vi: "Hét to cảm xúc lúc này" },
         { zh: "罚酒1杯：酒后舌吻", vi: "Phạt 1 ly: Hôn lưỡi sau uống" },
-        { zh: "终点：疯狂释放", vi: "Đích: Giải phóng cuồng nhiệt" }
+        { zh: "终极挑战：由对方指定姿势完成", vi: "Thử thách cuối: Thực hiện tư thế đối phương chỉ định" }
     ];
 
     let finalTasks = [];
@@ -210,6 +213,7 @@
     let turn = 0;
     let isRolling = false;
     let musicStarted = false;
+    let countdownInterval;
 
     const boardEl = document.getElementById('game-board');
     finalTasks.forEach((d, i) => {
@@ -221,6 +225,22 @@
     tokens[1].id = "p2-token"; tokens[1].className = "player-token";
     document.getElementById('cell-0').appendChild(tokens[0]);
     document.getElementById('cell-0').appendChild(tokens[1]);
+
+    function startTimer() {
+        clearInterval(countdownInterval);
+        let seconds = Math.floor(Math.random() * 121) + 60; // 60-180s
+        const display = document.getElementById('task-timer');
+        
+        function update() {
+            let m = Math.floor(seconds / 60);
+            let s = seconds % 60;
+            display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if(seconds <= 0) { clearInterval(countdownInterval); display.innerText = "TIME UP!"; }
+            seconds--;
+        }
+        update();
+        countdownInterval = setInterval(update, 1000);
+    }
 
     function rollDice() {
         if (isRolling) return;
@@ -236,7 +256,7 @@
             diceEl.classList.remove('dice-rolling');
             const num = Math.floor(Math.random() * 6) + 1;
             diceEl.innerText = num;
-            setTimeout(() => { movePlayer(num); isRolling = false; }, 2000);
+            setTimeout(() => { movePlayer(num); isRolling = false; }, 1500);
         }, 600);
     }
 
@@ -250,10 +270,12 @@
             document.getElementById('zh-text').innerText = finalTasks[p.pos].zh;
             document.getElementById('vi-text').innerText = finalTasks[p.pos].vi;
             document.getElementById('modal-overlay').style.display = 'flex';
+            startTimer();
         }, 500);
     }
 
     function closeModal() {
+        clearInterval(countdownInterval);
         document.getElementById('modal-overlay').style.display = 'none';
         if (players[turn].pos < 79) {
             turn = turn === 0 ? 1 : 0;
